@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>القرآن الكريم — القراءات والتفاسير</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='qp.css') }}">
+</head>
+<body>
+
+<div id="top-bar">
+    <div class="logo">القرآن الكريم</div>
+    <div class="controls">
+        <select id="qp-surah-select"></select>
+        <select id="qp-mushaf-select"></select>
+        <button id="qp-root-search-btn">بحث بجذر الكلمة</button>
+        <input id="qp-search-input" type="text" placeholder="ابحث في القرآن أو التفاسير...">
+        <select id="qp-search-scope">
+            <option value="ayahs">القرآن</option>
+            <option value="books">التفاسير</option>
+        </select>
+        <button id="qp-search-btn">بحث</button>
+    </div>
+</div>
+
+<div id="qp-back-to-results-bar" class="qp-back-to-results-bar">
+    <button id="qp-back-to-results-bar-btn">⤴ العودة إلى نتائج البحث</button>
+</div>
+
+<main id="qp-reader">
+    <div id="qp-reader-inner">
+        <div id="qp-surah-header"></div>
+        <div id="qp-ayah-list"></div>
+    </div>
+</main>
+
+<!-- Per-ayah modal: Tafsir / Qira'at / Asbab / E3rab / Nasekh tabs -->
+<div id="qp-ayah-modal" class="qp-modal-overlay">
+    <div class="qp-modal-box">
+        <div class="qp-modal-header">
+            <span id="qp-modal-ayah-ref"></span>
+            <button id="qp-modal-close">&times;</button>
+        </div>
+        <div class="qp-modal-ayah-text" id="qp-modal-ayah-text"></div>
+        <div class="qp-tabs" id="qp-tabs"></div>
+        <div class="qp-tab-body" id="qp-tab-body"></div>
+    </div>
+</div>
+
+<!-- Word / root popover -->
+<div id="qp-word-popover" class="qp-popover"></div>
+
+<!-- Root search panel -->
+<div id="qp-root-modal" class="qp-modal-overlay">
+    <div class="qp-modal-box">
+        <div class="qp-modal-header">
+            <span>البحث بجذر الكلمة</span>
+            <button id="qp-root-modal-close">&times;</button>
+        </div>
+        <div class="qp-root-input-row">
+            <input id="qp-root-input" type="text" placeholder="اكتب الجذر (مثال: سمو)">
+            <button id="qp-root-search-go-btn">بحث</button>
+        </div>
+        <div id="qp-root-results"></div>
+        <div id="qp-root-load-more-wrap" class="qp-load-more-wrap"></div>
+    </div>
+</div>
+
+<!-- Global search results panel -->
+<div id="qp-search-modal" class="qp-modal-overlay">
+    <div class="qp-modal-box">
+        <div class="qp-modal-header">
+            <span id="qp-search-modal-title">نتائج البحث</span>
+            <button id="qp-search-modal-close">&times;</button>
+        </div>
+        <div id="qp-search-results"></div>
+        <div id="qp-search-load-more-wrap" class="qp-load-more-wrap"></div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='qp.js') }}"></script>
+</body>
+</html>
