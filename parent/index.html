@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكتبة الإسلامية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Lateef:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+	<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <!-- Top Bar -->
+    <header id="top-bar">
+        <div class="logo">المكتبة الإسلامية</div>
+        <div class="controls">
+            <button id="btn-tashkeel" title="إظهار/إخفاء التشكيل">◌ التشكيل</button>
+            <button id="btn-refresh" title="تحديث المكتبة">تحديث المكتبة</button>
+            <button id="btn-embed" class="btn-secondary-small" title="بناء التمثيلات الدلالية للصفحات الجديدة أو المفقودة">⚡ تمثيلات</button>
+            <button id="btn-import-toc-all" class="btn-secondary-small" title="يستورد الفهرس المحلي لكل كتاب لم يُستورَد له فهرس بعد">📑 استيراد الفهارس</button>
+            <button id="btn-import-toc-all-stop" class="btn-secondary-small hidden" title="إيقاف عملية استيراد الفهارس الجارية">⏹ إيقاف</button>
+            <label id="lbl-import-toc-all-force" title="إعادة استيراد الفهرس لكل الكتب حتى التي تملك فهرساً مستورَداً بالفعل">
+                <input type="checkbox" id="chk-import-toc-all-force"> إعادة الكل
+            </label>
+            <button id="btn-search-toggle" title="بحث">بحث</button>
+            <button id="btn-ai-toggle" title="الذكاء الاصطناعي">AI</button>
+            <button id="btn-hk-toggle" title="بحث الحديث">الحديث</button>
+            <select id="font-selector" title="تغيير الخط">
+                <option value="Amiri">أميري</option>
+                <option value="Scheherazade New">شهرزاد</option>
+                <option value="Noto Naskh Arabic">نوتو نسخ</option>
+                <option value="Lateef">لطيف</option>
+            </select>
+            <button id="btn-logs-toggle" class="btn-secondary-small" title="سجل الخادم">📋 السجل</button>
+            <button id="btn-shutdown" title="إيقاف الخادم">إيقاف الخادم</button>
+        </div>
+    </header>
+
+    <!-- Shutdown confirm overlay -->
+    <div id="shutdown-confirm-overlay">
+        <div id="shutdown-confirm-box">
+            <p>هل تريد فعلاً إيقاف الخادم؟<br>لن تتمكن من استخدام المكتبة حتى تُعيد تشغيله يدوياً.</p>
+            <div class="row">
+                <button id="shutdown-confirm-yes">نعم، أوقفه</button>
+                <button id="shutdown-confirm-no">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post-shutdown message -->
+    <div id="shutdown-dead-msg">تم إيقاف الخادم. يمكنك إغلاق هذه النافذة.</div>
+
+    <!-- Hadith knowledge graph overlay (بحث الحديث) — replaces the old
+         narrators-only overlay entirely. Two layers, not two panes:
+           - #hk-results-pane: the live search (mode tabs + box + results),
+             NEVER destroyed by drilling into detail views — it's exactly
+             how you left it whenever you return to it.
+           - #hk-detail-pane: an unlimited-depth stack of detail views
+             (hadith / meaning-group / narrator / critic / book / topic),
+             pushed to as you click through internal links. A back button
+             pops one level; the "نتائج البحث" button (always visible,
+             present in BOTH layers) jumps straight back to the results
+             layer in one click regardless of how deep the stack is. -->
+    <div id="hk-overlay" class="ai-block-modal-overlay hk-overlay">
+        <div class="ai-block-modal hk-modal">
+            <div class="panel-header hk-modal-header">
+                <h3 id="hk-modal-title">بحث الحديث</h3>
+                <button id="close-hk" class="ai-block-modal-close">&times;</button>
+            </div>
+
+            <div id="hk-results-pane">
+                <div class="hk-mode-tabs">
+                    <button type="button" class="hk-mode-tab active" data-mode="hadith">نص الحديث</button>
+                    <button type="button" class="hk-mode-tab" data-mode="group">المتون المجمعة</button>
+                    <button type="button" class="hk-mode-tab" data-mode="rawi">الرواة</button>
+                    <button type="button" class="hk-mode-tab" data-mode="topic">الموضوعات</button>
+                    <button type="button" class="hk-mode-tab" data-mode="aqwal">أقوال النقّاد</button>
+                    <button type="button" class="hk-mode-tab" data-mode="alem">الأئمة والنقّاد</button>
+                    <button type="button" class="hk-mode-tab" data-mode="book">الكتب</button>
+                </div>
+
+                <div class="toc-search-box hk-search-box">
+                    <input type="text" id="hk-search-input" dir="rtl" placeholder="ابحث..." autocomplete="off">
+                    <button id="hk-search-clear" class="toc-search-clear hidden" title="مسح البحث">&times;</button>
+                </div>
+
+                <div id="hk-rawi-filters" class="hk-filters hidden">
+                    <label>الرتبة:
+                        <select id="hk-filter-rank">
+                            <option value="">الكل</option>
+                        </select>
+                    </label>
+                    <label><input type="checkbox" id="hk-filter-bukhari"> روى له البخاري</label>
+                    <label><input type="checkbox" id="hk-filter-muslim"> روى له مسلم</label>
+                </div>
+
+                <div id="hk-results-summary" class="search-results-summary">اكتب للبحث</div>
+                <div id="hk-results-list" class="hk-results-list"></div>
+            </div>
+
+            <div id="hk-detail-pane" class="hidden">
+                <div class="hk-detail-nav">
+                    <button id="hk-detail-back" class="search-back-btn">&larr; السابق</button>
+                    <button id="hk-detail-results" class="hk-results-btn">🔍 نتائج البحث</button>
+                </div>
+                <div id="hk-detail-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Server console log panel (streams app.py's stdout/stderr, polled
+         from /api/logs — see setupLogPanel() in app.js) -->
+    <div id="log-panel">
+        <div class="log-panel-header">
+            <span>سجل الخادم (Server Log)</span>
+            <button id="close-logs" title="إغلاق">&times;</button>
+        </div>
+        <div id="log-content"></div>
+    </div>
+
+    <!-- AI Panel (Left Side) -->
+    <aside id="ai-panel" class="hidden">
+        <div class="panel-header">
+            <h3>AI</h3>
+            <div class="panel-header-actions">
+                <button id="btn-ai-clear-all" class="ai-copy-btn ai-clear-all-btn" title="مسح كل الأسئلة والأجوبة المحفوظة">❌ مسح الكل</button>
+                <button id="close-ai">&times;</button>
+            </div>
+        </div>
+        <div class="ai-agent-selector">
+            <label for="ai-agent">اختر نموذج الذكاء الاصطناعي:</label>
+            <select id="ai-agent">
+                <option value="gemini">Google Gemini</option>
+                <option value="mistral">Mistral AI</option>
+            </select>
+        </div>
+        <div class="ai-mode-selector">
+            <label for="ai-answer-mode">نمط الإجابة:</label>
+            <select id="ai-answer-mode">
+                <option value="strict">الاعتماد على المقتطفات فقط</option>
+                <option value="extended">البناء على المقتطفات وتوسيعها</option>
+            </select>
+        </div>
+        <div class="ai-topk-selector">
+            <label for="ai-top-k" title="عدد المقتطفات المستخدمة في الإجابة. اتركه فارغاً لاستخدام القيمة الافتراضية من config.ini">top_k (اتركه فارغاً للقيمة الافتراضية):</label>
+            <input type="number" id="ai-top-k" min="1" step="1" placeholder="افتراضي config.ini">
+        </div>
+        <div class="ai-scope-selector">
+            <button id="btn-ai-scope" type="button">
+                <span id="ai-scope-label">📚 نطاق البحث: كل المكتبة</span>
+                <span class="ai-scope-arrow">▾</span>
+            </button>
+            <div id="ai-scope-panel" class="hidden">
+                <div class="ai-scope-panel-header">
+                    <input type="text" id="ai-scope-filter" dir="rtl" placeholder="تصفية الكتب..." autocomplete="off">
+                    <button id="ai-scope-select-all" type="button">تحديد الكل</button>
+                    <button id="ai-scope-clear" type="button">إلغاء التحديد</button>
+                </div>
+                <div id="ai-scope-book-list"></div>
+            </div>
+        </div>
+        <div id="ai-messages"></div>
+        <div class="ai-input-area">
+            <textarea id="ai-input" dir="rtl" placeholder="اطرح سؤالك..."></textarea>
+            <button id="btn-send-ai">إرسال</button>
+        </div>
+    </aside>
+
+    <!-- Main Layout: Reader on LEFT, Sidebar on RIGHT -->
+    <div id="main-layout">
+        <!-- Reader (Left side) -->
+        <main id="reader">
+            <div id="welcome">
+                <h1>مرحباً بك في المكتبة الإسلامية</h1>
+                <p>اختر كتاباً من القائمة على اليمين للبدء بالقراءة.</p>
+                <p>يمكنك البحث في المكتبة أو طرح الأسئلة على المساعد الذكي.</p>
+            </div>
+            <div id="book-content" class="hidden"></div>
+        </main>
+
+        <!-- Draggable divider: drag to resize the sidebar -->
+        <div id="layout-splitter" title="اسحب لتغيير عرض اللوحة الجانبية"></div>
+
+        <!-- Sidebar / TOC (Right side) -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h3>فهرس الكتب</h3>
+            </div>
+            <div id="sidebar-search">
+                <div class="sidebar-search-row">
+                    <input type="text" id="sidebar-search-input" dir="rtl" placeholder="بحث في عناوين الكتب والفهارس..." autocomplete="off">
+                    <button id="sidebar-search-clear" class="hidden" title="مسح البحث">&times;</button>
+                </div>
+                <div class="sidebar-search-scope hidden">
+                    <button type="button" class="scope-btn active" data-scope="all">كل المكتبة</button>
+                    <button type="button" class="scope-btn" data-scope="current">هذا الكتاب</button>
+                    <label id="lbl-search-all-volumes" class="hidden" title="توسيع البحث لكل أجزاء هذا الكتاب">
+                        <input type="checkbox" id="chk-search-all-volumes"> كل الأجزاء
+                    </label>
+                </div>
+            </div>
+            <div id="sidebar-search-results" class="hidden"></div>
+            <div class="toc-search-box">
+                <input type="text" id="toc-search-input" dir="rtl" placeholder="تصفية العناصر المعروضة في الفهرس..." autocomplete="off">
+                <button id="toc-search-clear" class="toc-search-clear hidden" title="مسح">×</button>
+            </div>
+            <div id="focus-breadcrumb" class="hidden">
+                <span id="focus-breadcrumb-back">الكتب</span>
+                <span class="focus-breadcrumb-sep">←</span>
+                <span id="focus-breadcrumb-title"></span>
+            </div>
+            <div id="book-tree"></div>
+        </aside>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/hk-tree.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,2173 @@
+/* ── Base & Variables ── */
+:root {
+    --font-body: 'Amiri', serif;
+    --font-heading: 'Amiri', serif;
+    --font-footnote: 'Noto Naskh Arabic', serif;
+    --bg-primary: #f5f0e6;
+    --bg-secondary: #e8e0d0;
+    --bg-sidebar: #faf6ee;
+    --bg-reader: #fffdf7;
+    --text-primary: #2c241b;
+    --text-secondary: #5a4d3c;
+    --accent: #8b6914;
+    --accent-hover: #6b5010;
+    --border: #d4c9b8;
+    --shadow: rgba(0,0,0,0.08);
+    --slide-bg: #fffef9;
+    --slide-border: #e0d8c8;
+    --footnote-bg: #f9f5ed;
+    --footnote-border: #c9b896;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    height: 100%;
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    direction: rtl;
+    overflow: hidden;
+}
+
+/* ── Top Bar ── */
+#top-bar {
+    position: fixed;
+    top: 0; right: 0; left: 0;
+    height: 56px;
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.controls button, .controls select {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-sidebar);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.controls button:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.controls button.active-toggle {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.btn-secondary-small {
+    padding: 8px 10px !important;
+    font-size: 0.85rem !important;
+    opacity: 0.75;
+}
+
+.btn-secondary-small:hover { opacity: 1; }
+
+.embed-indicator {
+    margin-right: 4px;
+    font-size: 0.8rem;
+    cursor: default;
+}
+
+#lbl-import-toc-all-force {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+#lbl-import-toc-all-force input {
+    cursor: pointer;
+}
+
+/* ── Shutdown button: same base toolbar-button look, but with a subtle
+   warning tint since it's a destructive/disruptive action — distinct
+   from the neutral hover treatment every other toolbar button gets. ── */
+#btn-shutdown {
+    border-color: #b45050 !important;
+    color: #8b3a3a !important;
+}
+
+#btn-shutdown:hover {
+    background: #a83232 !important;
+    color: white !important;
+    border-color: #a83232 !important;
+}
+
+/* ── Shutdown confirm overlay ──
+   Ported from the Hub proxy's landing-page confirm dialog, restyled to
+   Shamela's own warm book-theme palette (var(--*) below) instead of the
+   Hub's purple gradient branding, so it reads as part of this app rather
+   than a mismatched borrowed component. */
+#shutdown-confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(44, 36, 27, 0.55);
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+}
+
+#shutdown-confirm-overlay.show {
+    display: flex;
+}
+
+#shutdown-confirm-box {
+    background: var(--bg-reader);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 26px;
+    max-width: 340px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    font-family: var(--font-body);
+}
+
+#shutdown-confirm-box p {
+    margin: 0 0 16px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+#shutdown-confirm-box .row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+#shutdown-confirm-box button {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+}
+
+#shutdown-confirm-yes {
+    background: #a83232;
+    color: white;
+}
+
+#shutdown-confirm-yes:hover {
+    background: #8b2727;
+}
+
+#shutdown-confirm-no {
+    background: var(--bg-secondary);
+    color: var(--accent);
+}
+
+#shutdown-confirm-no:hover {
+    background: var(--border);
+}
+
+/* ── Console log panel ──
+   Collapsible dark console strip pinned to the bottom of the viewport,
+   independent of the shutdown overlay/dead-msg above it. Kept in plain
+   LTR + monospace regardless of the RTL page direction, since the
+   content is server console output (mostly ASCII/English), not reading
+   content. */
+#log-panel {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 240px;
+    background: #1a1a1a;
+    border-top: 2px solid var(--border);
+    flex-direction: column;
+    z-index: 400;
+}
+
+#log-panel.show {
+    display: flex;
+}
+
+.log-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: #262626;
+    color: #ddd;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    direction: rtl;
+    flex-shrink: 0;
+}
+
+.log-panel-header button {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.log-panel-header button:hover {
+    color: white;
+}
+
+#log-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+    direction: ltr;
+    text-align: left;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: #d4d4d4;
+}
+
+.log-line {
+    white-space: pre-wrap;
+    word-break: break-all;
+    padding: 1px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* ── Post-shutdown message ──
+   Replaces the entire page content once the server has actually gone
+   down, so the (now-dead) app UI isn't left visibly stuck/broken behind
+   it — same purpose as the Hub's #dead-msg, restyled to Shamela's theme. */
+#shutdown-dead-msg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--text-primary);
+    color: var(--bg-reader);
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 20px;
+    z-index: 600;
+}
+
+#shutdown-dead-msg.show {
+    display: flex;
+}
+
+.focus-trigger {
+    margin-right: 6px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.15s, color 0.15s;
+}
+
+.focus-trigger:hover {
+    opacity: 1;
+    color: var(--accent);
+}
+
+/* Focus mode: hides every book node except the one currently focused on,
+   toggled by adding/removing this class — the existing tree-node markup,
+   click-to-expand behavior, and everything else about a node stays
+   completely unchanged, this purely controls visibility at the top level. */
+.tree-node.focus-hidden,
+.volume-group.focus-hidden {
+    display: none;
+}
+
+#focus-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+}
+
+/* #focus-breadcrumb's own display:flex (an ID selector, specificity 100)
+   would otherwise always beat the plain .hidden class rule (specificity
+   10) regardless of source order — meaning toggling the hidden class
+   from JS had no visible effect and the bar showed on every page load.
+   This explicit combined-selector override restores the correct
+   specificity so .hidden actually hides it. */
+#focus-breadcrumb.hidden {
+    display: none;
+}
+
+#focus-breadcrumb-back {
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+#focus-breadcrumb-back:hover {
+    text-decoration: underline;
+}
+
+.focus-breadcrumb-sep {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+#focus-breadcrumb-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Refresh spinner */
+.spinner {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    margin-left: 6px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    vertical-align: middle;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Main Layout: SIDEBAR ON RIGHT (RTL) ── */
+#main-layout {
+    display: flex;
+    height: calc(100vh - 56px);
+    margin-top: 56px;
+    flex-direction: row-reverse;
+}
+
+/* ── Sidebar (Right) ── */
+#sidebar {
+    width: 320px;
+    min-width: 260px;
+    max-width: 600px;
+    flex: 0 0 auto;
+    background: var(--bg-sidebar);
+    border-left: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Draggable divider between the reader and the sidebar. Sits between them
+   in DOM order so it renders visually between them regardless of layout
+   direction. */
+#layout-splitter {
+    flex: 0 0 6px;
+    width: 6px;
+    cursor: col-resize;
+    background: var(--border);
+    position: relative;
+    z-index: 10;
+}
+
+#layout-splitter::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    right: -3px; left: -3px; /* widen the actual hit-area without widening the visible bar */
+}
+
+#layout-splitter:hover,
+#layout-splitter.dragging {
+    background: var(--accent);
+}
+
+.sidebar-header {
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.sidebar-header h3 {
+    font-size: 1.1rem;
+    color: var(--accent);
+}
+
+/* ── Sidebar search (replaces the old popup modal) ── */
+#sidebar-search {
+    position: relative;
+    padding: 12px 14px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+#sidebar-search-input {
+    width: 100%;
+    padding: 9px 28px 9px 12px;
+    font-size: 0.95rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: var(--font-body);
+    background: var(--bg-reader);
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+
+#sidebar-search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+#sidebar-search-clear {
+    position: absolute;
+    left: 20px;
+    top: 22px;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px 4px;
+}
+
+#sidebar-search-clear:hover { color: var(--accent); }
+
+.sidebar-search-scope {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.scope-btn {
+    flex: 1;
+    padding: 5px 8px;
+    font-size: 0.82rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-reader);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.scope-btn:hover { border-color: var(--accent); }
+
+.scope-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+#lbl-search-all-volumes {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    padding: 0 4px;
+}
+
+/* ── Sidebar: collapsible multi-volume book groups ── */
+.volume-group {
+    margin: 4px 0;
+}
+
+.volume-group-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 5px;
+    transition: background 0.15s;
+}
+
+.volume-group-header:hover {
+    background: var(--bg-secondary);
+}
+
+.volume-group-arrow {
+    font-size: 0.85rem;
+    color: var(--accent);
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    align-self: flex-start;
+    padding-top: 2px;
+}
+
+.volume-group-arrow.expanded {
+    color: #fff;
+    background: #4a7c3f;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 8px;
+    height: 8px;
+    font-size: 0.55rem;
+    padding-top: 0;
+}
+
+.volume-group-title {
+    font-size: 1rem;
+    font-weight: normal;
+    user-select: none;
+    flex: 1;
+}
+
+.volume-group-children {
+    padding-right: 16px;
+    display: none;
+}
+
+.volume-group-children.open {
+    display: block;
+}
+
+/* ── AI scope panel: multi-volume book groups ── */
+.ai-scope-group {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+}
+
+.ai-scope-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: normal;
+}
+
+.ai-scope-group-header:hover { background: var(--bg-secondary); }
+
+.ai-scope-book-row-indented {
+    padding-right: 24px;
+}
+
+/* ── Search results panel (replaces the book tree while a query is active) ── */
+#sidebar-search-results {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px 12px;
+}
+
+.search-results-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 8px 6px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.search-back-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: var(--font-body);
+    text-decoration: underline;
+}
+
+.search-result-item {
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    border-radius: 7px;
+    transition: background 0.15s, border-color 0.15s;
+    background: var(--bg-reader);
+}
+
+.search-result-item:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+}
+
+.search-result-item.book-result .result-title {
+    margin-bottom: 0;
+}
+
+.search-result-item .result-title {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.95rem;
+}
+
+.search-result-item .result-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: 3px 0;
+}
+
+.search-result-item .result-snippet {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Shared highlight style: used both for matched terms inside search
+   result snippets and for the live in-page highlight after navigating
+   to a result. */
+mark, .search-hit {
+    background: #ffe066;
+    color: #2c241b;
+    padding: 0 2px;
+    border-radius: 3px;
+}
+
+/* ── Instant TOC filter ── */
+/* A lightweight, complementary, purely client-side filter for whatever is
+   already visible/expanded in the tree below — distinct from the
+   server-side search box above (#sidebar-search), which searches the
+   whole library regardless of what's currently expanded. */
+.toc-search-box {
+    position: relative;
+    padding: 12px 14px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+#toc-search-input {
+    width: 100%;
+    padding: 9px 28px 9px 12px;
+    font-size: 0.95rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: var(--font-body);
+    background: var(--bg-reader);
+    color: var(--text-primary);
+}
+
+#toc-search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.toc-search-clear {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px 4px;
+}
+
+.toc-search-clear:hover { color: var(--accent); }
+
+#book-tree {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 8px;
+}
+
+/* Tree Nodes */
+.tree-node {
+    margin: 4px 0;
+}
+
+.tree-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 5px;
+    transition: background 0.15s;
+    width: 100%;
+}
+
+.tree-toggle:hover {
+    background: var(--bg-secondary);
+}
+
+.tree-arrow {
+    font-size: 0.75rem;
+    color: var(--accent);
+    width: 16px;
+    text-align: center;
+    align-self: flex-start;
+    padding-top: 2px;
+}
+
+.tree-arrow.leaf {
+    visibility: hidden;
+}
+
+.tree-arrow-child {
+    font-size: 1rem;
+}
+
+.tree-label {
+    font-size: 1rem;
+    user-select: none;
+}
+
+.tree-children {
+    padding-right: 24px;
+    display: none;
+}
+
+.tree-children.open {
+    display: block;
+}
+
+.tree-heading {
+    padding: 4px 10px 4px 0;
+    cursor: pointer;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+
+.tree-heading:hover {
+    background: var(--bg-secondary);
+    color: var(--accent);
+}
+
+.tree-heading.level-1 { font-weight: 700; color: var(--text-primary); }
+.tree-heading.level-2 { padding-right: 12px; }
+.tree-heading.level-3 { padding-right: 24px; font-size: 0.88rem; }
+.tree-heading.level-4 { padding-right: 36px; font-size: 0.85rem; }
+.tree-heading.level-5 { padding-right: 48px; font-size: 0.82rem; }
+.tree-heading.level-6 { padding-right: 60px; font-size: 0.8rem; }
+
+/* Active heading highlight (distinct from the active *book* highlight) */
+.tree-heading.active-heading {
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+}
+
+.tree-import-toc {
+    padding: 5px 10px 5px 0;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--accent);
+    border-radius: 4px;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.tree-import-toc:hover {
+    background: var(--bg-secondary);
+}
+
+.tree-import-toc.loading {
+    color: var(--text-secondary);
+    cursor: wait;
+}
+
+.tree-action-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    border-bottom: 1px dashed var(--border);
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+}
+
+.tree-action-line:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.tree-node.active > .tree-toggle {
+    background: var(--accent);
+    color: white;
+}
+
+.tree-node.active > .tree-toggle .tree-arrow {
+    color: white;
+}
+
+.tree-node.active > .tree-toggle .focus-trigger {
+    color: white;
+    opacity: 0.85;
+}
+
+.tree-node.active > .tree-toggle .focus-trigger:hover {
+    opacity: 1;
+    color: white;
+}
+
+/* ── Reader (Left/Center) ── */
+#reader {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg-reader);
+    padding: 40px 60px;
+    position: relative;
+}
+
+#welcome {
+    text-align: center;
+    padding-top: 15vh;
+}
+
+#welcome h1 {
+    font-size: 2.2rem;
+    color: var(--accent);
+    margin-bottom: 20px;
+}
+
+#welcome p {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    line-height: 2;
+}
+
+#book-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.loading-msg, .error-msg, .empty-msg {
+    text-align: center;
+    padding: 40px;
+}
+
+.loading-msg { color: var(--accent); }
+.error-msg { color: #c00; }
+.empty-msg { color: var(--text-secondary); }
+
+/* ── SLIDE PAGES - Preserve ALL original formatting ── */
+.slide-page {
+    background: var(--slide-bg);
+    border: 1px solid var(--slide-border);
+    border-radius: 8px;
+    padding: 40px 50px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px var(--shadow);
+    min-height: 300px;
+    line-height: 2;
+    font-size: 1.15rem;
+    text-align: justify;
+    scroll-margin-top: 0;
+}
+
+/* CRITICAL: Preserve original inline styles from source HTML */
+.slide-page * {
+    /* Do NOT override colors, fonts, or sizes from source HTML */
+    /* Only set defaults when no inline style exists */
+}
+
+/* Headings: preserve original colors if they exist */
+.slide-page h1, .slide-page h2, .slide-page h3,
+.slide-page h4, .slide-page h5, .slide-page h6 {
+    font-family: var(--font-heading);
+    margin: 24px 0 16px 0;
+    scroll-margin-top: 0;
+}
+
+.slide-page [id] {
+    scroll-margin-top: 0;
+}
+
+/* Only apply default color if NO inline color style exists */
+.slide-page h1:not([style*="color"]):not([style*="COLOR"]),
+.slide-page h2:not([style*="color"]):not([style*="COLOR"]),
+.slide-page h3:not([style*="color"]):not([style*="COLOR"]),
+.slide-page h4:not([style*="color"]):not([style*="COLOR"]),
+.slide-page h5:not([style*="color"]):not([style*="COLOR"]),
+.slide-page h6:not([style*="color"]):not([style*="COLOR"]) {
+    color: var(--accent);
+}
+
+/* Legacy <font color="..."> attributes from the source HTML are rendered
+   natively by the browser at the lowest cascade priority. We deliberately
+   add no competing `color` rule for plain font/span elements here so that
+   original colors (e.g. the red hadith-text convention) always show
+   through untouched. (CSS's color: attr(color) does not exist in any
+   browser for the `color` property — it only works for `content` — so an
+   earlier attempt to "force" this via attr() was a no-op poorly disguised
+   as a fix; removed.) */
+
+/* Page header line used by the Shamela/"المكتبة الشاملة" source format:
+   book/part name on one side, printed page number on the other, with a
+   rule beneath. Re-created here with the app's own theme colors instead
+   of each file's embedded styling, so every book looks consistent. */
+.slide-page .PageHead {
+    font-style: italic;
+    font-weight: 700;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+    overflow: hidden;
+}
+
+.slide-page .PartName { float: right; }
+.slide-page .PageNumber { float: left; }
+
+.slide-page .PageHead hr {
+    clear: both;
+    margin-top: 10px;
+    border: none;
+    border-top: 1px solid var(--border);
+}
+
+/* Front-matter metadata labels (الكتاب:, المؤلف:, ...) */
+.slide-page .title:not([style*="color"]):not([style*="COLOR"]) {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* Inline hadith/section markers (data-type="title") used for navigation */
+.slide-page [data-type="title"] {
+    font-weight: 700;
+}
+
+.slide-page [data-type="title"]:not([style*="color"]):not([style*="COLOR"]) {
+    color: var(--accent);
+}
+
+.slide-page h1 { font-size: 1.8rem; }
+.slide-page h2 { font-size: 1.5rem; }
+.slide-page h3 { font-size: 1.3rem; }
+
+/* Paragraphs: preserve line breaks but allow wrapping */
+.slide-page p {
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Preserve ALL original inline styles from source */
+.slide-page b, .slide-page strong,
+.slide-page i, .slide-page em,
+.slide-page u, .slide-page span,
+.slide-page font {
+    /* Let original HTML attributes and inline styles pass through */
+}
+
+/* ── FOOTNOTES - Properly styled and separated ── */
+/* Footnote blocks (full footnote text at bottom of page) */
+.slide-page .footnote,
+.slide-page .fn,
+.slide-page .hfootnote,
+.slide-page .hashiya,
+.slide-page .tafseel,
+.slide-page .hoshiya,
+.slide-page [class*="foot"],
+.slide-page [class*="hashiya"],
+.slide-page [class*="hoshiya"] {
+    display: block;
+    margin-top: 24px;
+    padding: 14px 18px;
+    background: var(--footnote-bg);
+    border-right: 3px solid var(--footnote-border);
+    border-radius: 0 6px 6px 0;
+    font-family: var(--font-footnote);
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+/* Footnote markers (superscript numbers like * or (1)) in main text */
+.slide-page sup,
+.slide-page .fn-marker,
+.slide-page .footnote-ref,
+.slide-page [class*="fn-ref"],
+.slide-page [class*="footnote-ref"] {
+    display: inline;
+    vertical-align: super;
+    font-size: 0.75em;
+    line-height: 0;
+    position: relative;
+    top: -0.3em;
+    color: var(--accent);
+    font-weight: bold;
+    margin: 0 2px;
+}
+
+/* Don't treat regular sup as block footnote */
+.slide-page sup:not(.footnote):not(.fn):not(.hfootnote) {
+    display: inline;
+    vertical-align: super;
+    font-size: 0.75em;
+    line-height: 0;
+    position: relative;
+    top: -0.3em;
+}
+
+/* (The search UI now lives in the sidebar — see #sidebar-search and
+   #sidebar-search-results above — replacing the old popup modal.) */
+
+/* ── AI Panel (Left) ── */
+#ai-panel {
+    position: fixed;
+    top: 56px; left: 0; bottom: 0;
+    width: 380px;
+    background: var(--bg-sidebar);
+    border-right: 2px solid var(--border);
+    box-shadow: 4px 0 16px var(--shadow);
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+}
+
+#ai-panel.hidden {
+    transform: translateX(-100%);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+}
+
+.panel-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.panel-header h3 {
+    font-size: 1.05rem;
+    color: var(--accent);
+}
+
+.ai-agent-selector {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+.ai-agent-selector label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.ai-agent-selector select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-reader);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+}
+
+.ai-agent-selector select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.ai-mode-selector {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+.ai-mode-selector label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.ai-mode-selector select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-reader);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+}
+
+.ai-mode-selector select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.ai-topk-selector {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+.ai-topk-selector label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.ai-topk-selector input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-reader);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
+.ai-topk-selector input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.ai-scope-selector {
+    position: relative;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+#btn-ai-scope {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-reader);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+#btn-ai-scope:hover { border-color: var(--accent); }
+
+.ai-scope-arrow {
+    font-family: var(--font-body);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+#ai-scope-panel {
+    position: absolute;
+    top: calc(100% - 2px);
+    left: 18px;
+    right: 18px;
+    z-index: 20;
+    background: var(--bg-reader);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 280px;
+    display: flex;
+    flex-direction: column;
+}
+
+#ai-scope-panel.hidden { display: none; }
+
+.ai-scope-panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+#ai-scope-filter {
+    flex: 1 1 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    min-width: 0;
+}
+
+#ai-scope-filter:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+#ai-scope-select-all {
+    flex: 1 1 auto;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#ai-scope-select-all:hover { border-color: var(--accent); color: var(--text-primary); }
+
+#ai-scope-clear {
+    flex: 1 1 auto;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#ai-scope-clear:hover { border-color: var(--accent); color: var(--text-primary); }
+
+#ai-scope-book-list {
+    overflow-y: auto;
+    padding: 4px 0;
+}
+
+.ai-scope-book-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.ai-scope-book-row:hover { background: var(--bg-secondary); }
+
+.ai-scope-book-row input[type="checkbox"] {
+    flex-shrink: 0;
+}
+
+.ai-scope-empty {
+    padding: 12px;
+    text-align: center;
+    font-family: var(--font-body);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+#close-ai {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+#ai-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ai-message {
+    padding: 12px 14px;
+    border-radius: 10px;
+    line-height: 1.9;
+    font-size: 0.95rem;
+    max-width: 100%;
+}
+
+.ai-message.user {
+    background: var(--accent);
+    color: white;
+    align-self: flex-end;
+    border-bottom-left-radius: 2px;
+}
+
+.ai-message.bot {
+    background: var(--bg-reader);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    align-self: flex-start;
+    border-bottom-right-radius: 2px;
+}
+
+.ai-copy-btn {
+    display: block;
+    margin-top: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.ai-copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.ai-sources-toggle {
+    display: inline-block;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+    font-size: 0.85rem;
+    color: var(--accent);
+    cursor: pointer;
+    user-select: none;
+}
+
+.ai-sources-toggle:hover {
+    text-decoration: underline;
+}
+
+.ai-sources-box {
+    margin-top: 6px;
+}
+
+.ai-sources-box.hidden {
+    display: none;
+}
+
+.ai-message.bot .source-citation {
+    display: block;
+    padding: 4px 0;
+    font-size: 0.85rem;
+    color: var(--accent);
+    cursor: pointer;
+}
+
+.ai-message.bot .source-citation:hover {
+    text-decoration: underline;
+}
+
+/* Saved Ask-history blocks: question + answer + citations (labels only,
+   no snippet text) + action row (نسخ / نسخ المقتطفات / مسح). */
+.ai-history-block {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border);
+}
+
+.ai-history-block .source-citation {
+    display: block;
+    padding: 4px 0;
+    font-size: 0.85rem;
+    color: var(--accent);
+}
+
+.ai-history-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.ai-history-actions .ai-copy-btn {
+    display: inline-block;
+    margin-top: 0;
+}
+
+.ai-clear-block-btn:hover {
+    border-color: #c0392b;
+    color: #c0392b;
+}
+
+/* Collapsed-by-default question row: arrow + question text (clickable to
+   expand/collapse the answer body below) + a small icon button to open
+   the same block in a modal, without needing to expand it inline first. */
+.ai-history-question-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.ai-history-arrow {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.ai-history-question {
+    flex: 1;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.ai-history-open-btn {
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    opacity: 0.7;
+    padding: 0 4px;
+}
+
+.ai-history-open-btn:hover {
+    opacity: 1;
+}
+
+.ai-history-body {
+    padding-top: 6px;
+}
+
+/* Modal reading view for a single block — same content and live buttons
+   as the collapsed list item, just with room to read comfortably. */
+.ai-block-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 24px;
+}
+
+.ai-block-modal {
+    position: relative;
+    background: var(--bg-reader);
+    border-radius: 10px;
+    padding: 28px 22px 20px;
+    max-width: 640px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.ai-block-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    border: none;
+    background: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.ai-block-modal-close:hover {
+    color: var(--text-primary);
+}
+
+/* Header "❌ مسح الكل" reuses .ai-copy-btn's look (same font/border/
+   padding as نسخ / نسخ المقتطفات) but needs inline sizing to sit
+   correctly in the panel header row next to the × close button. */
+.panel-header {
+    gap: 10px;
+}
+
+.ai-clear-all-btn {
+    display: inline-block;
+    margin-top: 0;
+}
+
+.ai-clear-all-btn:hover {
+    border-color: #c0392b;
+    color: #c0392b;
+}
+
+.ai-input-area {
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#ai-input {
+    width: 100%;
+    min-height: 60px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    resize: vertical;
+}
+
+#btn-send-ai {
+    padding: 10px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+#btn-send-ai:hover {
+    background: var(--accent-hover);
+}
+
+/* ── Utilities ── */
+.hidden { display: none; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    #sidebar { width: 260px; }
+    #reader { padding: 20px 30px; }
+    #ai-panel { width: 300px; }
+}
+
+/* ── Hadith knowledge graph overlay (بحث الحديث) ──
+   Reuses .ai-block-modal-overlay / .ai-block-modal as the base (same
+   centered-on-top-of-app pattern already used for AI history blocks),
+   sized larger than the old narrators-only modal since this now holds
+   five search modes, richer detail views (narrator dossiers with
+   teacher/student network bars, sanad chains, critic quotes), not just a
+   narrator bio card. Two layers (results / detail) swapped via .hidden,
+   each independently scrollable, exactly like the previous list/card
+   pattern this replaces. */
+.hk-overlay {
+    display: none;
+    z-index: 2100; /* above the AI block modal (2000), since this can be opened from anywhere */
+}
+
+.hk-overlay.show {
+    display: flex;
+}
+
+.hk-modal {
+    max-width: 820px;
+    width: 92vw;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    max-height: 88vh;
+}
+
+/* Applied only while a tree/table entry is the one actually showing (see
+   renderHkDetailEntry in app.js) — the tree needs meaningfully more
+   width than any other page in this modal; height was already close to
+   sufficient, so it grows only a little by comparison. */
+.hk-modal.hk-modal-tree-mode {
+    max-width: 1180px;
+    max-height: 92vh;
+}
+
+.hk-modal-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hk-modal-header h3 {
+    color: var(--accent);
+    font-size: 1.1rem;
+    padding-left: 30px; /* reserve room so long titles don't run under the close button */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+/* .ai-block-modal-close defaults to right:12px, which in this RTL modal is
+   exactly where the title text starts — move it to the opposite (left)
+   side just for this modal, same fix as the panel it replaces. */
+.hk-modal-header .ai-block-modal-close {
+    right: auto;
+    left: 12px;
+}
+
+#hk-results-pane,
+#hk-detail-pane {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+}
+
+/* An ID selector always beats a class selector regardless of source
+   order, so plain .hidden on these IDs would lose to the display:flex
+   rule above — kept as an explicit ID+class combinator, same fix already
+   proven necessary in the panel this replaces. */
+#hk-results-pane.hidden,
+#hk-detail-pane.hidden {
+    display: none;
+}
+
+.hk-mode-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 12px 20px 0;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.hk-mode-tab {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-reader);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.hk-mode-tab:hover {
+    border-color: var(--accent);
+}
+
+.hk-mode-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.hk-search-box {
+    flex-shrink: 0;
+    padding-top: 10px;
+}
+
+.hk-filters {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 0 20px 8px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.hk-filters label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.hk-filters select {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-reader);
+    color: var(--text-primary);
+    padding: 3px 6px;
+}
+
+#hk-search-input {
+    width: 100%;
+    padding: 9px 28px 9px 12px;
+    font-size: 0.95rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: var(--font-body);
+    background: var(--bg-reader);
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+
+#hk-search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+#hk-results-summary {
+    flex-shrink: 0;
+    padding: 10px 20px 4px;
+}
+
+.hk-results-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 20px 16px;
+}
+
+.hk-result-card {
+    cursor: pointer;
+}
+
+.hk-preview {
+    line-height: 1.7;
+    margin: 4px 0;
+}
+
+.hk-subline {
+    margin: 2px 0;
+}
+
+.hk-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 4px 0;
+}
+
+.hk-badge {
+    font-size: 0.72rem;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.hk-badge-sahih {
+    background: rgba(46, 160, 67, 0.15);
+    color: #2ea043;
+}
+
+.hk-badge-hasan {
+    background: rgba(210, 153, 34, 0.15);
+    color: #d29922;
+}
+
+.hk-badge-daif {
+    background: rgba(219, 80, 74, 0.15);
+    color: #db504a;
+}
+
+.hk-badge-muted {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+/* ── Detail layer ── */
+
+.hk-detail-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.hk-results-btn {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-reader);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.hk-results-btn:hover {
+    border-color: var(--accent);
+}
+
+#hk-detail-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px;
+}
+
+.hk-detail-header {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+}
+
+.hk-detail-muted {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.hk-bio-row,
+.hk-stats-row {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.hk-nass {
+    font-size: 1rem;
+    line-height: 1.9;
+    margin: 10px 0;
+    padding: 12px 14px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.hk-taraf {
+    border-right: 3px solid var(--accent);
+    font-weight: 600;
+}
+
+.hk-load-more-btn {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 9px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: var(--bg-reader);
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.hk-load-more-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-secondary);
+}
+
+.hk-load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.hk-section-heading {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 16px 0 8px;
+}
+
+.hk-section-link {
+    margin: 8px 0;
+}
+
+.hk-link {
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.hk-link:hover {
+    text-decoration: underline;
+}
+
+.hk-link-block {
+    display: block;
+    color: var(--text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    margin-top: 4px;
+    line-height: 1.6;
+}
+
+.hk-link-block:hover {
+    color: var(--accent);
+}
+
+/* Sanad chains */
+
+.hk-sanads {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hk-sanad-row {
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.hk-chain {
+    margin-top: 6px;
+    line-height: 2;
+    font-size: 0.88rem;
+}
+
+.hk-chain-arrow {
+    color: var(--text-secondary);
+}
+
+.hk-chain-node {
+    font-weight: 600;
+}
+
+.hk-chain-node-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: top;
+}
+
+.hk-chain-node-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.hk-chain-node-sub {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+}
+
+.hk-chain-flag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 0 3px;
+    margin-inline-start: 2px;
+}
+
+.hk-hukm-sentence {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 4px 0 8px;
+}
+
+.hk-chain-break {
+    color: var(--text-secondary);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    padding: 0 5px;
+}
+
+/* Narrator dossier: teacher/student network bars */
+
+.hk-network-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+    .hk-network-grid { grid-template-columns: 1fr; }
+}
+
+.hk-bar-row {
+    margin-bottom: 8px;
+}
+
+.hk-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    margin-bottom: 3px;
+}
+
+.hk-bar-track {
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.hk-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+}
+
+/* Critic quotes */
+
+.hk-aqwal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hk-aqwal-quote {
+    padding-right: 12px;
+    border-right: 2px solid var(--accent);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+/* Result-card-like list used inside detail views (group narrations, book
+   hadith listings, topic children) — narrower variant of .search-result-item */
+
+.hk-narrations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ── Isnad tree widget (شجرة الإسناد) — hk-tree.js ──
+   Ported from the standalone tree_test.html harness once the layout/
+   interaction design was finalized there. Variable names below map
+   directly onto the tokens already defined at the top of this file. */
+
+.hk-tree-widget-container {
+    overflow-y: scroll;   /* permanently-reserved gutter — see hk-tree.js docstring */
+    overflow-x: hidden;
+    max-height: 78vh;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-reader);
+    padding: 10px;
+    min-height: 200px;
+}
+
+.hk-tree-trigger-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 9px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.hk-tree-trigger-btn:hover { border-color: var(--accent); }
+
+.hk-tree-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+.hk-tree-view-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    overflow: hidden;
+}
+.hk-tree-view-toggle button {
+    padding: 6px 14px;
+    border: none;
+    background: var(--bg-reader);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.hk-tree-view-toggle button.active {
+    background: var(--accent);
+    color: #fff;
+}
+.hk-tree-sahabi-filter {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    background: var(--bg-reader);
+    color: var(--text-primary);
+}
+
+.hk-tree-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.hk-tree-table th {
+    text-align: right;
+    padding: 8px 10px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.hk-tree-table th:hover { color: var(--accent); }
+.hk-tree-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.hk-tree-empty { padding: 40px; text-align: center; color: var(--text-secondary); }
+
+.hk-tree-node rect {
+    fill: var(--bg-secondary);
+    stroke: var(--border);
+    stroke-width: 1.5;
+}
+.hk-tree-node text {
+    font-size: 12px;
+    fill: var(--text-primary);
+    font-family: var(--font-body);
+    pointer-events: none;
+}
+.hk-tree-node-prophet rect { fill: #e9dfc8; stroke: var(--accent); stroke-width: 2; }
+.hk-tree-node-sahabi rect { fill: #ded4b8; }
+.hk-tree-node-break rect { stroke-dasharray: 4 3; stroke: #c0574f; }
+.hk-tree-node-madar rect { stroke: #cf9b2e; stroke-width: 2.5; }
+.hk-tree-node-madar text { font-weight: 700; }
+.hk-tree-madar-label { font-size: 11px; fill: #a97d1f; font-weight: 700; }
+
+.hk-tree-node:focus rect,
+.hk-tree-node:hover rect { stroke: var(--accent); stroke-width: 2; }
+
+/* Active-path highlight uses blue, deliberately distinct from the
+   madar's permanent gold border. */
+.hk-tree-edge-hover { stroke: var(--accent) !important; stroke-opacity: 0.7 !important; }
+.hk-tree-edge-active { stroke: #2563eb !important; stroke-opacity: 0.95 !important; }
+.hk-tree-edge-dim { stroke-opacity: 0.08 !important; }
+
+.hk-tree-node-dim { opacity: 0.25; }
+.hk-tree-node-onpath rect { stroke: #2563eb; stroke-width: 2.5; }
+
+.hk-tree-open-link {
+    font-size: 13px;
+    fill: var(--accent);
+    cursor: pointer;
+    pointer-events: auto;
+}
+.hk-tree-open-link:hover { fill: #2563eb; }
+rect[data-hk-open] { cursor: pointer; pointer-events: auto; }
