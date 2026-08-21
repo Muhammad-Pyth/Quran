@@ -1,0 +1,453 @@
+/* ── Quran Pedia section (qp-*) ──
+   Loads AFTER the parent's real style.css (linked in quran_reader.html),
+   reusing its :root tokens plus the .ai-block-modal-overlay / .hk-modal /
+   .hk-mode-tab / .hk-results-list / .hk-load-more-btn / .search-back-btn /
+   .search-result-item / .search-results-summary base classes directly —
+   this file only adds qp-specific rules on top, matching the single-overlay
+   results/detail-pane architecture used by the Hadith section (item #5). */
+
+/* Item #1: explicit font-family everywhere text is shown — previously
+   missing, so the reader/tafsir fell back to the browser default instead
+   of inheriting Shamela's Amiri/Noto Naskh Arabic tokens. */
+#qp-ayah-list, .qp-modal-ayah-text, .qp-book-content, .qp-divergence-row,
+.qp-popover, .qp-root-hit, #qp-results-list {
+    font-family: var(--font-body);
+}
+
+.qp-modal { max-width: 960px; max-height: 90vh; }
+
+/* Item (b): tashkeel toggle button — same visual convention as Shamela's
+   real #btn-tashkeel (.controls button), reused here in the modal header
+   since this button lives outside .controls in this layout. */
+#qp-btn-tashkeel {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-sidebar);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-inline-start: auto;
+    margin-inline-end: 10px;
+}
+#qp-btn-tashkeel:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+#qp-btn-tashkeel.active-toggle { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ── Reader controls / scroll area (results-pane, reader mode) ── */
+.qp-reader-controls {
+    padding: 12px 20px 0;
+    flex-shrink: 0;
+}
+.qp-reader-controls select {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-reader);
+    color: var(--text-primary);
+}
+
+.qp-reader-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px 20px;
+}
+
+#qp-surah-about { margin-bottom: 16px; }
+.qp-about-toggle {
+    width: 100%;
+    text-align: right;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.qp-about-toggle:hover { background: var(--bg-secondary); }
+.qp-about-body {
+    padding: 14px 16px 4px;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: var(--bg-reader);
+}
+.qp-about-section { margin-bottom: 14px; }
+.qp-about-label { font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 0.92rem; }
+.qp-about-content { line-height: 1.9; font-size: 1.15rem; }
+.qp-about-content p { margin-bottom: 8px; }
+
+#qp-surah-header {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    color: var(--accent);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+#qp-ayah-list {
+    background: var(--bg-reader);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px;
+    font-size: 1.4rem;
+    line-height: 2.6;
+    text-align: justify;
+}
+
+.qp-ayah-word {
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0 1px;
+    transition: background 0.15s;
+}
+/* Item #7: hover-only affordance for ordinary words — no permanent tint.
+   The cursor + hover background is enough to signal "clickable" without
+   marking every single word all the time. */
+.qp-ayah-word:hover { background: var(--bg-secondary); }
+
+/* Qira'at-divergence words keep their own persistent marker — this is
+   meaningful information (these words genuinely differ across readings),
+   not decoration. A dotted underline signals "this word has a variant"
+   without competing with the reading flow, and doesn't touch background
+   at all — so the ordinary hover state above still applies identically.
+   Item (a): hidden by default, shown only when qp-show-divergence is
+   toggled on (see #qp-btn-divergence in qp.js). */
+body.qp-show-divergence .qp-ayah-word.qp-divergence {
+    border-bottom: 2px dotted var(--accent);
+}
+
+#qp-btn-divergence {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-sidebar);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-inline-end: 10px;
+}
+#qp-btn-divergence:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+#qp-btn-divergence.active-toggle { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.qp-ayah-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    font-size: 0.82rem;
+    color: var(--accent);
+    margin: 0 4px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+.qp-ayah-number:hover { background: var(--accent); color: #fff; }
+.qp-ayah-number-static { cursor: default; }
+.qp-ayah-number-static:hover { background: transparent; color: var(--accent); }
+
+/* Non-Hafs mushafs are display-only in the reader (root/morphology,
+   tafsir, qira'at, asbab, e3rab, nasekh all key off Hafs's own numbering
+   and don't correspond to any other mushaf's text) — words and the ayah
+   badge stay in the layout but genuinely stop being interactive, and look
+   it: no pointer cursor, no hover feedback, muted number-badge border. */
+.qp-ayah-word.qp-non-hafs { cursor: default; }
+.qp-ayah-word.qp-non-hafs:hover { background: transparent; }
+.qp-ayah-number.qp-non-hafs {
+    cursor: default;
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
+.qp-ayah-number.qp-non-hafs:hover { background: transparent; color: var(--text-secondary); }
+
+.qp-pager {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    margin-top: 18px; padding: 12px 0;
+    border-top: 1px solid var(--border);
+}
+.qp-pager-btn {
+    padding: 7px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+.qp-pager-btn:hover:not(:disabled) { background: var(--accent); color: #fff; }
+.qp-pager-btn:disabled { opacity: 0.4; cursor: default; }
+.qp-pager-info { font-size: 0.83rem; color: var(--text-secondary); }
+
+/* ── Item #2 (icon-in-box) + follow-up fixes:
+   1) icons were positioned relative to .qp-search-box-wrap, but that
+      wrapper is ALSO .toc-search-box, which carries its own 12px/14px
+      padding (see parent/style.css) — so offsets were measured from the
+      padded WRAPPER edge, not the input itself. Fixed via
+      .qp-search-input-inner as a dedicated positioning context.
+   2) #qp-search-input itself never got Hadith's own #toc-search-input
+      base styling (width:100%, border, padding, radius, font, background)
+      — it was rendering as a bare, tiny, browser-default input, which is
+      why it looked "too plain" AND why the icons appeared to float far
+      outside the visible box (the box itself was never actually as wide
+      as its container). Matched to #toc-search-input's real rule set. ── */
+.qp-search-input-inner { position: relative; }
+.qp-search-box-wrap #qp-search-input {
+    width: 100%;
+    padding: 9px 54px 9px 12px;  /* right:12px like Hadith's own input; left:54px reserved for our two icons */
+    font-size: 0.95rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: var(--font-body);
+    background: var(--bg-reader);
+    color: var(--text-primary);
+}
+.qp-search-box-wrap #qp-search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+.qp-search-icon {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px; height: 22px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 50%;
+}
+.qp-search-icon:hover { background: var(--bg-secondary); }
+.qp-search-icon::before {
+    content: '';
+    position: absolute;
+    left: 4px; top: 4px;
+    width: 10px; height: 10px;
+    border: 2px solid var(--text-secondary);
+    border-radius: 50%;
+}
+.qp-search-icon::after {
+    content: '';
+    position: absolute;
+    width: 2px; height: 7px;
+    background: var(--text-secondary);
+    left: 13px; top: 12px;
+    transform: rotate(45deg);
+    border-radius: 1px;
+}
+.qp-search-icon:hover::before, .qp-search-icon:hover::after { background: var(--accent); border-color: var(--accent); }
+
+/* Item #2: clear (×) button — same convention as Hadith's .toc-search-clear,
+   toggled visible only when the input has text. Also fixed to sit relative
+   to the input itself, not the outer padded wrapper (see note above). */
+.hk-search-box-clear {
+    position: absolute;
+    left: 34px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px 4px;
+}
+.hk-search-box-clear:hover { color: var(--accent); }
+
+/* ── Ayah detail (tafsir / qira'at / asbab / e3rab / nasekh) ── */
+.qp-modal-ayah-text {
+    padding: 12px 16px;
+    font-size: 1.25rem;
+    line-height: 2.1;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.qp-modal-nav {
+    display: flex; gap: 8px; width: 100%;
+    padding-bottom: 10px; margin-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+}
+.qp-modal-nav-btn {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    background: var(--bg-sidebar);
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.qp-modal-nav-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--bg-secondary); }
+.qp-modal-nav-btn:disabled { opacity: 0.35; cursor: default; }
+
+.qp-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+.qp-tab-btn {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-reader);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.qp-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.qp-book-dropdown {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-sidebar);
+    font-family: var(--font-body);
+}
+
+/* Item #10: book content can run to tens of thousands of characters for a
+   single ayah — scrollable within its own box (bounded by the modal's own
+   max-height) rather than an unbounded innerHTML dump, so long entries
+   don't force scrolling the whole detail pane by feel. */
+.qp-book-content {
+    line-height: 1.9;
+    font-size: 1.15rem;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.qp-book-content .book-ayah { color: var(--accent); font-weight: 600; }
+.qp-book-content .surah-ref { color: var(--text-secondary); font-size: 0.85em; }
+
+/* Item #11: real footnote separation — a distinct section, not just styled
+   inline markers. Superscript refs jump to the matching item via #anchor. */
+.qp-footnote-ref { font-size: 0.75em; }
+.qp-footnote-ref a { color: var(--accent); text-decoration: none; }
+.qp-footnote-ref a:hover { text-decoration: underline; }
+.qp-footnotes-section {
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 2px solid var(--footnote-border);
+    background: var(--footnote-bg);
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+.qp-footnotes-title {
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+.qp-footnote-item {
+    font-family: var(--font-footnote);
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    scroll-margin-top: 20px;  /* so jumping to it via # doesn't hide it under the modal header */
+}
+.qp-footnote-marker { color: var(--accent); font-weight: 700; }
+
+/* Item #10: in-place "continue to next ayah's tafsir" control */
+.qp-continue-wrap { margin-top: 14px; }
+.qp-continue-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.qp-continue-btn:hover { background: var(--accent); color: #fff; }
+
+
+.qp-empty-note { color: var(--text-secondary); text-align: center; padding: 26px 0; }
+
+/* ── Qira'at tab (item #9: context line anchors each variant group to its word) ── */
+.qp-divergence-row {
+    padding: 12px 14px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+.qp-divergence-context {
+    font-size: 1.05rem;
+    line-height: 1.9;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--border);
+}
+.qp-divergence-word { font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 0.85rem; }
+.qp-divergence-variant { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; }
+.qp-divergence-rawi { font-weight: 600; color: var(--text-primary); }
+
+/* ── Word/root popover (item #7: shows pos/inflection/lemma/pattern, not just root) ── */
+.qp-popover {
+    display: none;
+    position: absolute;
+    background: var(--bg-reader);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    box-shadow: 0 8px 24px var(--shadow);
+    z-index: 2200; /* above .hk-overlay (2100) so it can float over the modal */
+    font-size: 0.88rem;
+    max-width: 280px;
+}
+.qp-popover.show { display: block; }
+.qp-popover-segment { padding: 6px 0; border-bottom: 1px solid var(--border); }
+.qp-popover-segment:last-child { border-bottom: none; }
+.qp-popover-pos { font-weight: 700; color: var(--text-primary); }
+.qp-popover-inflection, .qp-popover-lemma, .qp-popover-pattern {
+    color: var(--text-secondary); font-size: 0.85em; margin-top: 2px;
+}
+.qp-popover-root { font-weight: 700; color: var(--accent); cursor: pointer; margin-top: 4px; }
+.qp-popover-root:hover { text-decoration: underline; }
+
+/* ── Root detail (pushed onto the same detail stack as ayah views) ── */
+.qp-root-results-inline, .qp-root-results-inline .qp-root-hit { font-family: var(--font-body); }
+.qp-root-hit {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+.qp-root-hit:hover { background: var(--bg-secondary); }
+
+/* ── Search-result / destination match highlighting ──
+   Item (d): highlight persists until the user's next left-click anywhere
+   on the page (see qpClearActiveHighlights/qpApplyDestinationHighlight in
+   qp.js) — no fade timer, just a static mark until dismissed by click. */
+mark, .qp-search-mark {
+    background: #f0e0a8;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* Item #6: load-more buttons use .hk-load-more-btn directly (was
+   incorrectly using an unstyled custom class before — fixed). */

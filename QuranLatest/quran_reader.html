@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>القرآن الكريم — القراءات والتفاسير</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Lateef:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='qp.css') }}">
+</head>
+<body>
+
+<!-- Standalone-test top bar. When wired into the parent Shamela app (see
+     item #5), only #btn-qp-toggle needs to be added to the real #top-bar
+     .controls row — everything below is the overlay itself, portable as-is. -->
+<header id="top-bar">
+    <div class="logo">القرآن الكريم</div>
+    <div class="controls">
+        <button id="btn-qp-toggle" title="القرآن والتفاسير">القرآن</button>
+    </div>
+</header>
+
+<!-- Quran Pedia overlay — mirrors #hk-overlay's structure exactly:
+     - #qp-results-pane: the reader itself (surah selector, paginated ayah
+       list, search box) PLUS root-search and global-search results when
+       active. Never destroyed by drilling into an ayah's tafsir — exactly
+       how you left it when you return.
+     - #qp-detail-pane: an unlimited-depth stack of detail views (an ayah's
+       tafsir/qiraat/asbab/e3rab/nasekh tabs, a root's occurrence list, a
+       search hit's destination) — pushed to as you click through internal
+       links (e.g. clicking a root INSIDE a tafsir view pushes a new root
+       view on top, rather than replacing/closing anything). A back button
+       pops one level; "🔍 نتائج البحث" (present in both layers) jumps
+       straight back to the reader/results layer regardless of stack depth. -->
+<div id="qp-overlay" class="ai-block-modal-overlay hk-overlay">
+    <div class="ai-block-modal hk-modal qp-modal">
+        <div class="panel-header hk-modal-header">
+            <h3 id="qp-modal-title">القرآن الكريم</h3>
+            <button id="qp-btn-tashkeel" title="إظهار/إخفاء التشكيل (لا يشمل قارئ المصحف)">◌ التشكيل</button>
+            <button id="qp-btn-divergence" title="إظهار/إخفاء تمييز كلمات اختلاف القراءات">تمييز القراءات</button>
+            <button id="qp-close" class="ai-block-modal-close">&times;</button>
+        </div>
+
+        <div id="qp-results-pane">
+            <div class="hk-mode-tabs">
+                <button type="button" class="hk-mode-tab active" data-qp-mode="reader">القراءة</button>
+                <button type="button" class="hk-mode-tab" data-qp-mode="ayahs">بحث في القرآن</button>
+                <button type="button" class="hk-mode-tab" data-qp-mode="books">بحث في التفاسير</button>
+                <button type="button" class="hk-mode-tab" data-qp-mode="root">بحث بجذر الكلمة</button>
+            </div>
+
+            <!-- Reader mode controls (surah picker) -->
+            <div id="qp-reader-controls" class="qp-reader-controls">
+                <select id="qp-surah-select"></select>
+                <select id="qp-mushaf-select"></select>
+            </div>
+
+            <!-- Search box, shared by ayahs/books/root modes (label + placeholder swap per mode) -->
+            <div class="toc-search-box hk-search-box qp-search-box-wrap hidden" id="qp-search-box-wrap">
+                <div class="qp-search-input-inner">
+                    <input type="text" id="qp-search-input" dir="rtl" placeholder="ابحث...">
+                    <button type="button" id="qp-search-clear" class="hk-search-box-clear hidden" title="مسح">&times;</button>
+                    <button type="button" id="qp-search-submit" class="qp-search-icon" title="بحث" aria-label="بحث"></button>
+                </div>
+            </div>
+
+            <div id="qp-results-summary" class="search-results-summary hidden"></div>
+            <div id="qp-reader-scroll" class="qp-reader-scroll">
+                <div id="qp-surah-header"></div>
+                <div id="qp-surah-about" class="hidden"></div>
+                <div id="qp-ayah-list"></div>
+                <div id="qp-pager"></div>
+            </div>
+            <div id="qp-results-list" class="hk-results-list hidden"></div>
+        </div>
+
+        <div id="qp-detail-pane" class="hidden">
+            <div class="hk-detail-nav">
+                <button id="qp-detail-back" class="search-back-btn">&larr; رجوع</button>
+                <button id="qp-detail-results" class="hk-results-btn">⌂ العودة إلى القائمة</button>
+            </div>
+            <div id="qp-detail-body"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Word / root popover (unchanged — lightweight, not part of the pane stack) -->
+<div id="qp-word-popover" class="qp-popover"></div>
+
+<script src="{{ url_for('static', filename='qp.js') }}"></script>
+</body>
+</html>
